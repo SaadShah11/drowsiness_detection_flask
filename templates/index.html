@@ -1,30 +1,147 @@
+<head>
+<!--	<link rel="stylesheet" href="./styles.css">-->
+	<style>
+		#drowsiness_alert_div {
+		  padding-bottom: 30px;
+		  border: 10px solid red;
+		}
 
+		.submit_btn {
+		  margin-top: 32px;
+		  width: 10rem;
+		  height: 3rem;
+		}
+
+		/* The slider itself */
+		.slider {
+		  -webkit-appearance: none;  /* Override default CSS styles */
+		  appearance: none;
+		  width: 100%; /* Full-width */
+		  height: 15px; /* Specified height */
+		  border-radius: 50%;
+		  background: #d3d3d3; /* Grey background */
+		  outline: none; /* Remove outline */
+		  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+		  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+		  transition: opacity .2s;
+		}
+
+		/* Mouse-over effects */
+		.slider:hover {
+		  opacity: 1; /* Fully shown on mouse-over */
+		}
+
+		/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+		.slider::-webkit-slider-thumb {
+		  -webkit-appearance: none; /* Override default look */
+		  appearance: none;
+		  width: 25px; /* Set a specific slider handle width */
+		  height: 25px; /* Slider handle height */
+  		  border-radius: 50%;
+  		  /*
+		  border: 0;
+		  background: url('icon.png');
+		  */
+		  background: #04AA6D; /* Green background */
+		  cursor: pointer; /* Cursor on hover */
+		}
+
+		.slider::-moz-range-thumb {
+		  width: 25px; /* Set a specific slider handle width */
+		  height: 25px; /* Slider handle height */
+		  border-radius: 50%;
+		  /*
+		  border: 0;
+		  background: url('icon.png');
+		  */
+		  background: #04AA6D; /* Green background */
+		  cursor: pointer; /* Cursor on hover */
+		}
+
+		.span_extremely_alert {
+		  padding-right: 70%;
+		}
+
+	</style>
+</head>
 <body>
-<div class="container">
+<div class="container" style="text-align: center;">
     <div class="row">
         <div class="col-lg-8  offset-lg-2">
-
-			
-            <h2 class="mt-5">CAMERA APP by Hemanth Nag</h2>
+            <h2 class="mt-5">Drowsiness Detection App by Syed Saad Ullah Shah</h2>
 			<form method="post" action="{{ url_for('tasks') }}">
-			<input type="submit" value="Stop/Start" name="stop" />
-			<input type="submit" value="Capture" name="click"/>
-			<input type="submit" value="Grey" name="grey" />
-			<input type="submit" value="Negative" name="neg" />
-			<input type="submit" value="Face Only" name="face" />
-			<input type="submit" value="Start/Stop Recording" name="rec" />
+				<input type="submit" value="Stop/Start" name="stop" />
+				<input type="submit" value="Capture" name="click"/>
+				<input type="submit" value="Grey" name="grey" />
+				<input type="submit" value="Negative" name="neg" />
+				<input type="submit" value="Face Only" name="face" />
+				<input type="submit" value="Start/Stop Recording" name="rec" />
+				<input type="submit" value="Landmarks" name="landmarks" />
 			</form>
             <img src="{{ url_for('video_feed') }}" height="80%">
+<!--			<h1>{{ utc_dt }}</h1>-->
+<!--			<div id="drowsiness_alert_div" style="display: {{ drowsiness_alert() }}">-->
+<!--				<h1>Hide this</h1>-->
+<!--			</div>-->
+			<div id="drowsiness_alert_div" style="display: none">
+				<h2>How Drowsy are you? use the slider to select from Aware (minimum) to Drowsy (maximum)</h2>
+				<div>
+					<span class="span_extremely_alert">Extremely Alert</span>
+					<span class="span_very_sleepy">Very Sleepy</span>
+					<input type="range" min="1" max="9" value="5" class="slider" id="myRange">
+				</div>
+				<button class="submit_btn" id="submit_btn_id">Submit</button>
+			</div>
 			<h3 style="font-family:courier;">Instructions:</h3>
 			<ol style="font-family:courier;">
-			<li>Stop/Start--Toggle between stop or start live streaming</li>
-			<li>Capture--Take still-shot and save in the 'shots' directory</li>
-			<li>Grey--Toggle between grayscale and RGB output</li>
-			<li>Negative--Toggle between negative and RGB output</li>
-			<li>Face Only--Shows just your face if present(Toggle on/off)</li> 
-			<li>Start/Stop Recording--Toggle between starting and stopping video recording</li> </ol>	
-			
+				<li>Stop/Start--Toggle between stop or start live streaming</li>
+				<li>Capture--Take still-shot and save in the 'shots' directory</li>
+				<li>Grey--Toggle between grayscale and RGB output</li>
+				<li>Negative--Toggle between negative and RGB output</li>
+				<li>Face Only--Shows just your face if present(Toggle on/off)</li> 
+				<li>Start/Stop Recording--Toggle between starting and stopping video recording</li> 
+			</ol>	
         </div>
     </div>
 </div>
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+$( document ).ready(function() {
+	function main() {
+		var drowsiness_alert_div = document.getElementById("drowsiness_alert_div")
+
+		var requestOptions = {
+		  method: 'GET',
+		  redirect: 'follow'
+		};
+
+		fetch("http://127.0.0.1:5000/fetch_drowsiness_alert", requestOptions)
+		  .then(response => response.text())
+		  .then(result => {
+			console.log("result: "+result)
+			if(result === "1") {
+				drowsiness_alert_div.style.display = "block"
+			} else {
+				drowsiness_alert_div.style.display = "none"
+			}
+		  })
+		  .catch(error => console.log('error', error));
+	}
+
+	setInterval(main, 3000)
+
+	document.getElementById("submit_btn_id").addEventListener('click', (e) => {
+		console.log("Submit: "+document.getElementById("myRange").value)
+		var requestOptions = {
+		  method: 'GET',
+		  redirect: 'follow'
+		};
+
+		fetch(`http://127.0.0.1:5000/fetch_drowsiness_alert_values?drowsiness_value=${document.getElementById("myRange").value}`, requestOptions)
+		  .then(response => response.text())
+		  .then(result => console.log(result))
+		  .catch(error => console.log('error', error));
+			});
+});
+</script>
